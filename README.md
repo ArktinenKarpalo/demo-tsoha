@@ -12,3 +12,5 @@ Toimintoja:
 
 
 [Tietokantakaavio](https://docs.google.com/drawings/d/1kP-6TE6eprBBnUZnFOwqT-L5yQGMKm2W5GyL3CZaEJg/edit?usp=sharing)
+
+[Heroku](https://demo-tsoha.herokuapp.com/)
