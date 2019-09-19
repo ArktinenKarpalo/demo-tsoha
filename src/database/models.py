@@ -1,9 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from src.database.database import db
 
-def init():
-    db.create_all()
-
 association_file_tag = db.Table("association_file_tag",
     db.Column("tag_id", db.Integer, db.ForeignKey("tag.id")),
     db.Column("file_id", db.Integer, db.ForeignKey("file.id"))
@@ -38,3 +35,5 @@ class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
     files = db.relationship("File", secondary=association_file_tag)
+
+db.create_all()

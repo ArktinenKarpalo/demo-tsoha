@@ -1,7 +1,7 @@
 from flask import request, render_template, make_response, render_template_string
 from app import app
-from src.database.models import User, Session_token
 from src.database.database import db
+from src.database.models import User, Session_token
 import secrets, hashlib
 
 @app.route("/")
