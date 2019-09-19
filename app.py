@@ -12,7 +12,6 @@ else:
 from src.database import database
 from src.routes import *
 
-
 if __name__ == "__main__":
     if app.config["ENV"] == "development":
         app.run(debug=1)
