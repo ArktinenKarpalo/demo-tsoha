@@ -6,7 +6,7 @@ if app.config["ENV"] == "development" :
     app.config["SQLALCHEMY_ECHO"] = True
 
 from src.database import database
-from src import routes
+from src.routes import *
 
 if __name__ == "__main__" :
     if app.config["ENV"] == "development" :
