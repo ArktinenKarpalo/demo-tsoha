@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block body %}
+	<form method="post">
+		<input type="text" name="tags_to_add" autocomplete="off" placeholder="Tags separated by space">
+		<input type="hidden" name="session_token" id="session_token">
+		<input type="submit" value="Add tag(s)">
+	</form>
+	<script type="module">
+		import Cookies from "/js/js.cookie.mjs"
+		document.getElementById("session_token").value = Cookies.get("session_token");
+	</script>
+	<ul>
+		{% for tag in tags %}
+			<li>{{tag}}</li>
+		{% endfor %}
+	</ul>
+	<img src="uploads/{{filename}}"></img>
+{% endblock %}

@@ -1,7 +1,7 @@
-from flask import request, render_template, make_response, render_template_string, send_from_directory
+from flask import request, render_template, make_response, render_template_string, send_from_directory, redirect
 from app import app
 from src.database.database import db
-from src.database.models import User, Session_token, File
+from src.database.models import User, Session_token, File, Tag
 from src import auth, utils
 import secrets, hashlib, os
 
@@ -12,9 +12,62 @@ def index():
     else:
         return render_template("index.html", logged_in=1)
 
+@app.route("/search")
+def search():
+    user_id = auth.loggedInAs(request.cookies.get(key="session_token"))
+    if user_id == None:
+        return render_template_string("Couldn't search, not logged in!"), 401
+    include = request.args.get("include")
+    exclude = request.args.get("exclude")
+    sql_statement = "SELECT filename\
+        FROM file\
+        WHERE file.user_id=" + str(user_id)
+    if include != None and len(include) > 0:
+        include = include.split()
+        include = list(map(lambda tag: "tag_id=" + str((lambda result: result.id if result != None else -1)(db.session.query(Tag.id).filter_by(name=tag).first())), include))
+        include_count = len(include)
+        include = " OR ".join(include)
+        sql_statement = sql_statement + " AND (SELECT COUNT(*)\
+        FROM association_file_tag\
+        WHERE association_file_tag.file_id = file.id AND (" + include + ")) = " + str(include_count)
+    if exclude != None and len(exclude) > 0:
+        exclude = exclude.split()
+        exclude = list(map(lambda tag: "tag_id=" + str((lambda result: result.id if result != None else -1)(db.session.query(Tag.id).filter_by(name=tag).first())), exclude))
+        exclude = " OR ".join(exclude)
+        sql_statement = sql_statement + " AND NOT EXISTS (SELECT id\
+            FROM association_file_tag\
+            WHERE association_file_tag.file_id = file.id AND (" + exclude + "))"
+    filenames = [r.filename for r in db.engine.execute(sql_statement).fetchall()]
+    return render_template("search.html", filenames=filenames)
+
+@app.route("/view", methods=["GET", "POST"])
+def view():
+    filename = request.args.get("filename")
+    file = File.query.filter_by(filename=filename).first()
+    if request.method == "GET":
+        user_id = auth.loggedInAs(request.cookies.get(key="session_token"))
+        if user_id != file.user_id:
+            return render_template_string("Unauthorized"), 401
+        tags = [tag.name for tag in file.tags]
+        return render_template("view.html", filename=filename, tags=tags)
+    if request.method == "POST":
+        user_id = auth.loggedInAs(request.form["session_token"])
+        if user_id != file.user_id:
+            return render_template_string("Unauthorized"), 401
+        tags = request.form["tags_to_add"].split()
+        for tag_name in tags:
+            tag = Tag.query.filter_by(name=tag_name).first()
+            if tag == None:
+                tag = Tag(name=tag_name)
+            tag.files.append(file)
+            db.session.add(tag)
+            db.session.commit()
+        return redirect("/view?filename="+filename)
+
 @app.route("/js/<path:path>")
 def js(path):
     return send_from_directory("js", path)
+
 @app.route("/uploads/<path:path>")
 def uploads(path):
     return send_from_directory(app.config["UPLOAD_DIRECTORY"], path)

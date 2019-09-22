@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block body %}
+	<input type="search" onkeydown="search(this)" name="tags" id="search_tags" placeholder="Search by tags" autocomplete="off">
+	<input type="button" onclick ="search()" value="Search">
+	<script>
+		search = (el) => {
+			if(el != null && event.key != "Enter")
+				return;
+			tags = document.getElementById("search_tags").value.split(" ");
+			include = [];
+			exclude = [];
+			for(let i=0; i<tags.length; i++) {
+				if(tags[i][0] == '-') {
+					exclude.push(tags[i].substring(1, tags[i].length));
+				} else {
+					include.push(tags[i]);
+				}
+			}
+			window.location.href = "/search?include=" + include.join(" ") + "&exclude=" + exclude.join(" ")
+		};
+	</script>
+	<ul>
+	{% for filename in filenames %}
+		<li><a href="/view?filename={{filename}}"><img src="uploads/{{filename}}"></a></img></li>
+	{% endfor %}
+	</ul>
+{% endblock %}

@@ -30,10 +30,9 @@ class File(db.Model):
     user = db.relationship("User")
     tags = db.relationship("Tag", secondary=association_file_tag)
 
-
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128), nullable=False)
+    name = db.Column(db.String(128), nullable=False, unique=True)
     files = db.relationship("File", secondary=association_file_tag)
 
 db.create_all()
