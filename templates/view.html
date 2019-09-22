@@ -3,17 +3,27 @@
 {% block body %}
 	<form method="post">
 		<input type="text" name="tags_to_add" autocomplete="off" placeholder="Tags separated by space">
-		<input type="hidden" name="session_token" id="session_token">
+		<input type="hidden" name="session_token" class="session_token">
 		<input type="submit" value="Add tag(s)">
 	</form>
-	<script type="module">
-		import Cookies from "/js/js.cookie.mjs"
-		document.getElementById("session_token").value = Cookies.get("session_token");
-	</script>
 	<ul>
 		{% for tag in tags %}
-			<li>{{tag}}</li>
+		<li>
+			<form method="post">
+				{{tag}}
+				<input type="hidden" name="session_token" class="session_token">
+				<input type="hidden" name="tag_to_remove" value="{{tag}}">
+				<input type="submit" value="x">
+			</form>
+		</li>
 		{% endfor %}
 	</ul>
+	<script type="module">
+		import Cookies from "/js/js.cookie.mjs"
+		const session_token = Cookies.get("session_token");
+		const elements = document.getElementsByClassName("session_token")
+		for(let i=0; i<elements.length; i++)
+			elements[i].value = session_token;
+	</script>
 	<img src="uploads/{{filename}}"></img>
 {% endblock %}

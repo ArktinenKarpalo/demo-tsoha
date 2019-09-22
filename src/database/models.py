@@ -2,8 +2,8 @@ from flask_sqlalchemy import SQLAlchemy
 from src.database.database import db
 
 association_file_tag = db.Table("association_file_tag",
-    db.Column("tag_id", db.Integer, db.ForeignKey("tag.id")),
-    db.Column("file_id", db.Integer, db.ForeignKey("file.id"))
+    db.Column("tag_id", db.Integer, db.ForeignKey("tag.id"), primary_key=True),
+    db.Column("file_id", db.Integer, db.ForeignKey("file.id"), primary_key=True)
 )
 
 class User(db.Model):
@@ -16,6 +16,7 @@ class User(db.Model):
     password_salt = db.Column(db.Binary(64), nullable=False)
     files = db.relationship("File")
     session_tokens = db.relationship("Session_token")
+    tags = db.relationship("Tag")
 
 class Session_token(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -32,7 +33,10 @@ class File(db.Model):
 
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128), nullable=False, unique=True)
+    name = db.Column(db.String(128), nullable=False)
+    used_count = db.Column(db.Integer, nullable=False) # How many files use this tag
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     files = db.relationship("File", secondary=association_file_tag)
+    user = db.relationship("User")
 
 db.create_all()

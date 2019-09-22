@@ -1,7 +1,7 @@
 from flask import request, render_template, make_response, render_template_string, send_from_directory, redirect
 from app import app
 from src.database.database import db
-from src.database.models import User, Session_token, File, Tag
+from src.database.models import User, Session_token, File, Tag, association_file_tag
 from src import auth, utils
 import secrets, hashlib, os
 
@@ -24,7 +24,7 @@ def search():
         WHERE file.user_id=" + str(user_id)
     if include != None and len(include) > 0:
         include = include.split()
-        include = list(map(lambda tag: "tag_id=" + str((lambda result: result.id if result != None else -1)(db.session.query(Tag.id).filter_by(name=tag).first())), include))
+        include = list(map(lambda tag: "tag_id=" + str((lambda result: result.id if result != None else -1)(db.session.query(Tag.id).filter_by(name=tag,user_id=user_id).first())), include))
         include_count = len(include)
         include = " OR ".join(include)
         sql_statement = sql_statement + " AND (SELECT COUNT(*)\
@@ -32,7 +32,7 @@ def search():
         WHERE association_file_tag.file_id = file.id AND (" + include + ")) = " + str(include_count)
     if exclude != None and len(exclude) > 0:
         exclude = exclude.split()
-        exclude = list(map(lambda tag: "tag_id=" + str((lambda result: result.id if result != None else -1)(db.session.query(Tag.id).filter_by(name=tag).first())), exclude))
+        exclude = list(map(lambda tag: "tag_id=" + str((lambda result: result.id if result != None else -1)(db.session.query(Tag.id).filter_by(name=tag,user_id=user_id).first())), exclude))
         exclude = " OR ".join(exclude)
         sql_statement = sql_statement + " AND NOT EXISTS (SELECT id\
             FROM association_file_tag\
@@ -54,13 +54,26 @@ def view():
         user_id = auth.loggedInAs(request.form["session_token"])
         if user_id != file.user_id:
             return render_template_string("Unauthorized"), 401
-        tags = request.form["tags_to_add"].split()
-        for tag_name in tags:
-            tag = Tag.query.filter_by(name=tag_name).first()
-            if tag == None:
-                tag = Tag(name=tag_name)
-            tag.files.append(file)
-            db.session.add(tag)
+        if "tag_to_remove" in request.form:
+            tag = Tag.query.filter_by(name=request.form["tag_to_remove"], user_id=user_id).first()
+            if tag != None:
+                if tag.used_count == 1:
+                    db.session.delete(tag)
+                else:
+                    file.tags.remove(tag)
+                    tag.used_count -= 1
+                db.session.commit()
+        else:
+            tags = request.form["tags_to_add"].split()
+            for tag_name in tags:
+                tag = Tag.query.filter_by(name=tag_name, user_id=user_id).first()
+                if tag == None:
+                    tag = Tag(name=tag_name,user_id=user_id,used_count=1)
+                elif db.session.query(association_file_tag).filter_by(file_id=file.id, tag_id=tag.id).first() == None:
+                    tag.used_count += 1
+                tag.files.append(file)
+                db.session.add(tag)
+                db.session.flush()
             db.session.commit()
         return redirect("/view?filename="+filename)
 
