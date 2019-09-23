@@ -82,7 +82,6 @@ def view():
                 if tag.used_count == 1:
                     db.session.delete(tag)
                 else:
-                    #     file.tags.remove(tag)
                     tag.used_count -= 1
             db.session.flush()
             db.session.delete(file)
