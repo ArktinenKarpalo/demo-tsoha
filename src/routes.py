@@ -50,7 +50,7 @@ def view():
             return render_template_string("Unauthorized"), 401
         tags = [tag.name for tag in file.tags]
         return render_template("view.html", filename=filename, tags=tags)
-    if request.method == "POST":
+    elif request.method == "POST":
         user_id = auth.loggedInAs(request.form["session_token"])
         if user_id != file.user_id:
             return render_template_string("Unauthorized"), 401
@@ -63,7 +63,8 @@ def view():
                     file.tags.remove(tag)
                     tag.used_count -= 1
                 db.session.commit()
-        else:
+            return redirect("/view?filename="+filename)
+        elif "tags_to_add" in request.form:
             tags = request.form["tags_to_add"].split()
             for tag_name in tags:
                 tag = Tag.query.filter_by(name=tag_name, user_id=user_id).first()
@@ -75,7 +76,21 @@ def view():
                 db.session.add(tag)
                 db.session.flush()
             db.session.commit()
-        return redirect("/view?filename="+filename)
+            return redirect("/view?filename="+filename)
+        elif "delete" in request.form:
+            for tag in file.tags:
+                if tag.used_count == 1:
+                    db.session.delete(tag)
+                else:
+                    #     file.tags.remove(tag)
+                    tag.used_count -= 1
+            db.session.flush()
+            db.session.delete(file)
+            db.session.commit()
+            os.remove(os.path.join(app.config["UPLOAD_DIRECTORY"], file.filename))
+            return redirect("/search")
+    elif request.method == "DELETE":
+        print("LOLOLO")
 
 @app.route("/js/<path:path>")
 def js(path):
