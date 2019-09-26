@@ -110,14 +110,14 @@ def upload():
             return render_template_string("Couldn't upload file, not logged in."), 401
         if "file" not in request.files:
             return render_template_string("Missing file."), 400
-        file = request.files["file"]
-        extension = utils.fileExtension(file.filename)
-        if extension not in allowedExtensions:
-            return render_template_string("File extension not allowed"), 400
-        filename = secrets.token_hex(32) + "." +  extension
-        db.session.add(File(user_id=user_id, filename=filename))
-        db.session.commit()
-        file.save(os.path.join(app.config["UPLOAD_DIRECTORY"], filename))
+        for file in request.files.getlist("file"):
+            extension = utils.fileExtension(file.filename)
+            if extension not in allowedExtensions:
+                return render_template_string("File extension not allowed"), 400
+            filename = secrets.token_hex(32) + "." +  extension
+            db.session.add(File(user_id=user_id, filename=filename))
+            db.session.commit()
+            file.save(os.path.join(app.config["UPLOAD_DIRECTORY"], filename))
         return render_template("redirect.html", dest="/", message="File successfully uploaded! Redirecting soon...")
 
 @app.route("/logout")
