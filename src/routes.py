@@ -147,7 +147,7 @@ def upload():
             user.used_quota += upload_size
             db.session.commit()
             thumbnail = Image.open(os.path.join(app.config["UPLOAD_DIRECTORY"], filename))
-            thumbnail.thumbnail((300, 300))
+            thumbnail.thumbnail((300, 300), Image.BILINEAR)
             thumbnail.save(os.path.join(app.config["UPLOAD_DIRECTORY"], "thumb-" + filename))
 
         return render_template("redirect.html", dest="/", message="File successfully uploaded! Redirecting soon...")
