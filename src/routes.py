@@ -42,7 +42,7 @@ def search():
     else:
         exclude = []
     filenames = [r.filename for r in db.engine.execute(sql_statement, include+exclude).fetchall()]
-    return render_template("search.html", filenames=filenames)
+    return render_template("search.html", filenames=filenames, logged_in=1)
 
 @app.route("/view", methods=["GET", "POST"])
 def view():
@@ -53,7 +53,7 @@ def view():
         if user_id != file.user_id:
             return render_template_string("Unauthorized"), 401
         tags = [tag.name for tag in file.tags]
-        return render_template("view.html", filename=filename, tags=tags)
+        return render_template("view.html", filename=filename, tags=tags, logged_in=1)
     elif request.method == "POST":
         user_id = auth.loggedInAs(request.form["session_token"])
         if user_id != file.user_id:
@@ -107,7 +107,11 @@ allowedExtensions = {"jpg", "JPG", "png", "jpeg"}
 @app.route("/upload", methods=["GET", "POST"])
 def upload():
     if request.method == "GET":
-        return render_template("upload.html")
+        user_id = auth.loggedInAs(request.cookies.get(key="session_token"))
+        if user_id == None:
+            return render_template_string("Please log in first"), 401
+        else:
+            return render_template("upload.html", logged_in=1)
     elif request.method == "POST":
         user_id = auth.loggedInAs(request.form["session_token"])
         if user_id == None:
@@ -133,7 +137,11 @@ def logout():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "GET" :
-        return render_template("register.html")
+        user_id = auth.loggedInAs(request.cookies.get(key="session_token"))
+        if user_id == None:
+            return render_template("register.html", logged_in=0)
+        else:
+            return render_template("redirect.html", dest="/", message="Already logged in! Redirecting soon...")
     elif request.method == "POST" :
         if len(request.form["username"]) < 1:
             return ("Error while registering! Username is too short.")
@@ -156,7 +164,11 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET" :
-       return render_template("login.html")
+        user_id = auth.loggedInAs(request.cookies.get(key="session_token"))
+        if user_id == None:
+            return render_template("login.html", logged_in=0)
+        else:
+            return render_template("redirect.html", message="Already logged in! Redirecting soon...", dest="/")
     elif request.method == "POST" :
         if len(request.form["username"]) < 1:
             return ("Error while logging in! Username is too short.")
