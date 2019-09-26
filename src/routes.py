@@ -41,7 +41,7 @@ def search():
             WHERE association_file_tag.file_id = file.id AND (" + excludeStatement + "))"
     else:
         exclude = []
-    filenames = [r.filename for r in db.engine.execute(sql_statement, exclude+include).fetchall()]
+    filenames = [r.filename for r in db.engine.execute(sql_statement, include+exclude).fetchall()]
     return render_template("search.html", filenames=filenames)
 
 @app.route("/view", methods=["GET", "POST"])
