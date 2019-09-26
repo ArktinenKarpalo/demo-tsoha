@@ -24,20 +24,24 @@ def search():
         WHERE file.user_id=" + str(user_id)
     if include != None and len(include) > 0:
         include = include.split()
-        include = list(map(lambda tag: "tag_id=" + str((lambda result: result.id if result != None else -1)(db.session.query(Tag.id).filter_by(name=tag,user_id=user_id).first())), include))
+        include = list(map(lambda tag: str((lambda result: result.id if result != None else -1)(db.session.query(Tag.id).filter_by(name=tag,user_id=user_id).first())), include))
         include_count = len(include)
-        include = " OR ".join(include)
+        includeStatement = " OR ".join(["tag_id=?" for i in range(len(include))])
         sql_statement = sql_statement + " AND (SELECT COUNT(*)\
         FROM association_file_tag\
-        WHERE association_file_tag.file_id = file.id AND (" + include + ")) = " + str(include_count)
+        WHERE association_file_tag.file_id = file.id AND (" + includeStatement + ")) = " + str(include_count)
+    else:
+        include = []
     if exclude != None and len(exclude) > 0:
         exclude = exclude.split()
-        exclude = list(map(lambda tag: "tag_id=" + str((lambda result: result.id if result != None else -1)(db.session.query(Tag.id).filter_by(name=tag,user_id=user_id).first())), exclude))
-        exclude = " OR ".join(exclude)
+        exclude = list(map(lambda tag: str((lambda result: result.id if result != None else -1)(db.session.query(Tag.id).filter_by(name=tag,user_id=user_id).first())), exclude))
+        excludeStatement = " OR ".join(["tag_id=?" for i in range(len(exclude))])
         sql_statement = sql_statement + " AND NOT EXISTS (SELECT id\
             FROM association_file_tag\
-            WHERE association_file_tag.file_id = file.id AND (" + exclude + "))"
-    filenames = [r.filename for r in db.engine.execute(sql_statement).fetchall()]
+            WHERE association_file_tag.file_id = file.id AND (" + excludeStatement + "))"
+    else:
+        exclude = []
+    filenames = [r.filename for r in db.engine.execute(sql_statement, exclude+include).fetchall()]
     return render_template("search.html", filenames=filenames)
 
 @app.route("/view", methods=["GET", "POST"])
