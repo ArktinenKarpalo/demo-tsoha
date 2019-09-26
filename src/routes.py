@@ -60,7 +60,7 @@ def search():
         offset = (int(request.args.get("page"))-1)*limit
     pages = math.ceil(len(filenames)/limit)
     current_page = max(1, min(math.ceil(offset/limit)+1, pages))
-    return render_template("search.html", filenames=[filenames[i] for i in range(offset, min(offset+limit, len(filenames)))], logged_in=1, tags=sql_results2, pages=pages, current_page=current_page)
+    return render_template("search.html", filenames=[filenames[i] for i in range(max(0, offset), min(offset+limit, len(filenames)))], logged_in=1, tags=sql_results2, pages=pages, current_page=current_page)
 
 @app.route("/view", methods=["GET", "POST"])
 def view():

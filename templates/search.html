@@ -38,7 +38,7 @@
 			page_numbers.push(i);
 		if(page_numbers[0] != 1)
 			page_numbers.unshift(1);
-		if(page_numbers[page_numbers.length-1] != {{pages}})
+		if(page_numbers[page_numbers.length-1] != {{pages}} && {{pages}})
 			page_numbers.push({{pages}});
 
 		const params = new URLSearchParams(window.location.search);
