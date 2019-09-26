@@ -15,7 +15,7 @@
 		{% for tag in tags %}
 		<li>
 			<form method="post">
-				{{tag}}
+				<a href="/search?include={{tag}}">{{tag}}</a>
 				<input type="hidden" name="session_token" class="session_token">
 				<input type="hidden" name="tag_to_remove" value="{{tag}}">
 				<input type="submit" value="x">
