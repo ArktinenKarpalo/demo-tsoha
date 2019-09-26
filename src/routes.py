@@ -4,6 +4,7 @@ from src.database.database import db
 from src.database.models import User, Session_token, File, Tag, association_file_tag
 from src import auth, utils
 import secrets, hashlib, os
+from PIL import Image
 
 @app.route("/")
 def index():
@@ -91,6 +92,7 @@ def view():
             db.session.delete(file)
             db.session.commit()
             os.remove(os.path.join(app.config["UPLOAD_DIRECTORY"], file.filename))
+            os.remove(os.path.join(app.config["UPLOAD_DIRECTORY"], "thumb-" + file.filename))
             return redirect("/search")
     elif request.method == "DELETE":
         print("LOLOLO")
@@ -126,6 +128,10 @@ def upload():
             db.session.add(File(user_id=user_id, filename=filename))
             db.session.commit()
             file.save(os.path.join(app.config["UPLOAD_DIRECTORY"], filename))
+            thumbnail = Image.open(os.path.join(app.config["UPLOAD_DIRECTORY"], filename))
+            thumbnail.thumbnail((300, 300))
+            thumbnail.save(os.path.join(app.config["UPLOAD_DIRECTORY"], "thumb-" + filename))
+
         return render_template("redirect.html", dest="/", message="File successfully uploaded! Redirecting soon...")
 
 @app.route("/logout")

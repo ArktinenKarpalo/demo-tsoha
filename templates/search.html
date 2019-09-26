@@ -22,7 +22,7 @@
 	</script>
 	<ul>
 	{% for filename in filenames %}
-		<li><a href="/view?filename={{filename}}"><img src="uploads/{{filename}}"></a></img></li>
+		<li><a href="/view?filename={{filename}}"><img src="uploads/thumb-{{filename}}"></a></img></li>
 	{% endfor %}
 	</ul>
 {% endblock %}
