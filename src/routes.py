@@ -20,7 +20,7 @@ def search():
         return render_template_string("Couldn't search, not logged in!"), 401
     include = request.args.get("include")
     exclude = request.args.get("exclude")
-    sql_statement = "SELECT filename\
+    sql_statement = "SELECT id, filename\
         FROM file\
         WHERE file.user_id=" + str(user_id)
     if include != None and len(include) > 0:
@@ -29,8 +29,8 @@ def search():
         include_count = len(include)
         includeStatement = ",".join(["?" for i in range(len(include))])
         sql_statement = sql_statement + " AND (SELECT COUNT(*)\
-        FROM association_file_tag\
-        WHERE association_file_tag.file_id = file.id AND tag_id IN (" + includeStatement + ")) = " + str(include_count)
+            FROM association_file_tag\
+            WHERE association_file_tag.file_id = file.id AND tag_id IN (" + includeStatement + ")) = " + str(include_count)
     else:
         include = []
     if exclude != None and len(exclude) > 0:
@@ -42,8 +42,16 @@ def search():
             WHERE association_file_tag.file_id = file.id AND tag_id IN (" + excludeStatement + "))"
     else:
         exclude = []
-    filenames = [r.filename for r in db.engine.execute(sql_statement, include+exclude).fetchall()]
-    return render_template("search.html", filenames=filenames, logged_in=1)
+    sql_results = db.engine.execute(sql_statement, include+exclude).fetchall()
+    filenames = [r.filename for r in sql_results]
+    sql_statement2 = "SELECT tag.name, COUNT(name)\
+        FROM association_file_tag\
+        LEFT JOIN TAG ON tag_id=tag.id\
+        WHERE file_id IN (" + ",".join(["?" for i in range(len(filenames))]) + ")\
+        GROUP BY tag_id\
+        ORDER BY name"
+    sql_results2 = db.engine.execute(sql_statement2, [r.id for r in sql_results]).fetchall()
+    return render_template("search.html", filenames=filenames, logged_in=1, tags=sql_results2)
 
 @app.route("/view", methods=["GET", "POST"])
 def view():

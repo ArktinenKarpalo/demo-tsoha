@@ -21,6 +21,11 @@
 		};
 	</script>
 	<ul>
+	{% for tag in tags %}
+		<li><a href="/search?include={{tag[0]}}">{{tag[0]}}</a> - {{tag[1]}}</li>
+	{% endfor %}
+	</ul>
+	<ul>
 	{% for filename in filenames %}
 		<li><a href="/view?filename={{filename}}"><img src="uploads/thumb-{{filename}}"></a></img></li>
 	{% endfor %}
