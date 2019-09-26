@@ -29,5 +29,36 @@
 	{% for filename in filenames %}
 		<li><a href="/view?filename={{filename}}"><img src="uploads/thumb-{{filename}}"></a></img></li>
 	{% endfor %}
+	<ul id="pages">
+	</ul>
+	<script>
+		const pages = document.getElementById("pages");
+		page_numbers = [];
+		for(let i=Math.max(1, {{current_page}}-5); i<=Math.min({{current_page}}+5, {{pages}}); i++)
+			page_numbers.push(i);
+		if(page_numbers[0] != 1)
+			page_numbers.unshift(1);
+		if(page_numbers[page_numbers.length-1] != {{pages}})
+			page_numbers.push({{pages}});
+
+		const params = new URLSearchParams(window.location.search);
+		for(let i of page_numbers) {
+			const li = document.createElement("li");
+			if(i == {{current_page}}) {			
+				const span = document.createElement("span");
+				span.textContent = i;
+				li.appendChild(span);
+			} else {
+				const a = document.createElement("a");
+				a.textContent = i;
+				params.set("page", i);
+				a.href = "/search?" + params;
+				li.appendChild(a);
+			}
+			pages.appendChild(li);
+			console.log(i);
+		}
+		console.log(pages)
+	</script>
 	</ul>
 {% endblock %}

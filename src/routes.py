@@ -3,7 +3,7 @@ from app import app
 from src.database.database import db
 from src.database.models import User, Session_token, File, Tag, association_file_tag
 from src import auth, utils
-import secrets, hashlib, os
+import secrets, hashlib, os, math
 from PIL import Image
 
 @app.route("/")
@@ -51,7 +51,16 @@ def search():
         GROUP BY tag_id\
         ORDER BY name"
     sql_results2 = db.engine.execute(sql_statement2, [r.id for r in sql_results]).fetchall()
-    return render_template("search.html", filenames=filenames, logged_in=1, tags=sql_results2)
+
+    offset = 0
+    limit = 40
+    if request.args.get("limit"):
+        limit = int(request.args.get("limit"))
+    if request.args.get("page"):
+        offset = (int(request.args.get("page"))-1)*limit
+    pages = math.ceil(len(filenames)/limit)
+    current_page = max(1, min(math.ceil(offset/limit)+1, pages))
+    return render_template("search.html", filenames=[filenames[i] for i in range(offset, min(offset+limit, len(filenames)))], logged_in=1, tags=sql_results2, pages=pages, current_page=current_page)
 
 @app.route("/view", methods=["GET", "POST"])
 def view():
