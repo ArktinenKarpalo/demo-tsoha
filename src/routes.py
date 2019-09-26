@@ -90,12 +90,13 @@ def view():
                     tag.used_count -= 1
             db.session.flush()
             db.session.delete(file)
+            user = User.query.filter_by(id=user_id).first()
+            user.used_quota -= os.stat(os.path.join(app.config["UPLOAD_DIRECTORY"], file.filename)).st_size
             db.session.commit()
             os.remove(os.path.join(app.config["UPLOAD_DIRECTORY"], file.filename))
             os.remove(os.path.join(app.config["UPLOAD_DIRECTORY"], "thumb-" + file.filename))
             return redirect("/search")
     elif request.method == "DELETE":
-        print("LOLOLO")
 
 @app.route("/js/<path:path>")
 def js(path):
@@ -125,9 +126,19 @@ def upload():
             if extension not in allowedExtensions:
                 return render_template_string("File extension not allowed"), 400
             filename = secrets.token_hex(32) + "." +  extension
-            db.session.add(File(user_id=user_id, filename=filename))
-            db.session.commit()
+            file_row = File(user_id=user_id, filename=filename)
+            db.session.add(file_row)
+            db.session.flush()
             file.save(os.path.join(app.config["UPLOAD_DIRECTORY"], filename))
+            user = User.query.filter_by(id=user_id).first()
+            upload_size = os.stat(os.path.join(app.config["UPLOAD_DIRECTORY"], filename)).st_size
+            if user.max_quota < user.used_quota + upload_size:
+                os.remove(os.path.join(app.config["UPLOAD_DIRECTORY"], filename))
+                db.session.delete(file_row)
+                db.session.commit()
+                return render_template_string("Couldn't upload all files! User quota exceeded"), 400
+            user.used_quota += upload_size
+            db.session.commit()
             thumbnail = Image.open(os.path.join(app.config["UPLOAD_DIRECTORY"], filename))
             thumbnail.thumbnail((300, 300))
             thumbnail.save(os.path.join(app.config["UPLOAD_DIRECTORY"], "thumb-" + filename))
@@ -161,7 +172,7 @@ def register():
             return ("Error while registering! User with the username: " + request.form["username"] + " already exists!")
         salt = secrets.token_bytes(64)
         hashed = hashlib.scrypt(password=request.form["password"].encode(), salt=salt, n=16384, r=8, p=1)
-        user = User(username = request.form["username"], admin=False, used_quota=0, max_quota=0, password_salt=salt, password_hash=hashed)
+        user = User(username = request.form["username"], admin=False, used_quota=0, max_quota=1e9, password_salt=salt, password_hash=hashed)
         db.session.add(user)
         db.session.commit()
         resp = make_response(render_template("redirect.html", message="Registration successful! Redirecting soon...", dest="/login"))
