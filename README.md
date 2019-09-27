@@ -11,6 +11,6 @@ Toimintoja:
 - Mahdollisia tilastoja ja yhteenvetoja käyttäjän tiedostoista ja tageista
 
 
-[Tietokantakaavio](https://docs.google.com/drawings/d/1kP-6TE6eprBBnUZnFOwqT-L5yQGMKm2W5GyL3CZaEJg/edit?usp=sharing)
+[Tietokantakaavio](https://github.com/ArktinenKarpalo/demo-tsoha/blob/master/docs/tietokantakaavio.png)
 
 [Heroku](https://demo-tsoha.herokuapp.com/)
