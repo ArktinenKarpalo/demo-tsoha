@@ -27,7 +27,10 @@ def search():
         include = include.split()
         include = list(map(lambda tag: str((lambda result: result.id if result != None else -1)(db.session.query(Tag.id).filter_by(name=tag,user_id=user_id).first())), include))
         include_count = len(include)
-        includeStatement = ",".join(["?" for i in range(len(include))])
+        if app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
+            includeStatement = ",".join(["?" for i in range(len(include))])
+        else:
+            includeStatement = ",".join(["%s" for i in range(len(include))])
         sql_statement = sql_statement + " AND (SELECT COUNT(*)\
             FROM association_file_tag\
             WHERE association_file_tag.file_id = file.id AND tag_id IN (" + includeStatement + ")) = " + str(include_count)
@@ -36,7 +39,10 @@ def search():
     if exclude != None and len(exclude) > 0:
         exclude = exclude.split()
         exclude = list(map(lambda tag: str((lambda result: result.id if result != None else -1)(db.session.query(Tag.id).filter_by(name=tag,user_id=user_id).first())), exclude))
-        excludeStatement = ",".join(["?" for i in range(len(exclude))])
+        if app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
+            excludeStatement = ",".join(["?" for i in range(len(exclude))])
+        else:
+            excludeStatement = ",".join(["%s" for i in range(len(exclude))])
         sql_statement = sql_statement + " AND NOT EXISTS (SELECT id\
             FROM association_file_tag\
             WHERE association_file_tag.file_id = file.id AND tag_id IN (" + excludeStatement + "))"
@@ -44,13 +50,24 @@ def search():
         exclude = []
     sql_results = db.engine.execute(sql_statement, include+exclude).fetchall()
     filenames = [r.filename for r in sql_results]
-    sql_statement2 = "SELECT tag.name, COUNT(name)\
-        FROM association_file_tag\
-        LEFT JOIN TAG ON tag_id=tag.id\
-        WHERE file_id IN (" + ",".join(["?" for i in range(len(filenames))]) + ")\
-        GROUP BY tag_id\
-        ORDER BY name"
-    sql_results2 = db.engine.execute(sql_statement2, [r.id for r in sql_results]).fetchall()
+    if app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
+        sql_statement2 = "SELECT tag.name, COUNT(name)\
+            FROM association_file_tag\
+            LEFT JOIN TAG ON tag_id=tag.id\
+            WHERE file_id IN (" + ",".join(["?" for i in range(len(filenames))]) + ")\
+            GROUP BY tag.name\
+            ORDER BY name"
+    else:
+        sql_statement2 = "SELECT tag.name, COUNT(name)\
+            FROM association_file_tag\
+            LEFT JOIN TAG ON tag_id=tag.id\
+            WHERE file_id IN (" + ",".join(["%s" for i in range(len(filenames))]) + ")\
+            GROUP BY tag.name\
+            ORDER BY name"
+    if len(filenames) == 0:
+        sql_results2 = []
+    else:
+        sql_results2 = db.engine.execute(sql_statement2, [r.id for r in sql_results]).fetchall()
 
     offset = 0
     limit = 40
