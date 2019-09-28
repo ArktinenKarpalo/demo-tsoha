@@ -174,7 +174,7 @@ def upload():
             thumbnail.thumbnail((300, 300), Image.BILINEAR)
             thumbnail.save(os.path.join(app.config["UPLOAD_DIRECTORY"], "thumb-" + filename))
 
-        return render_template("redirect.html", dest="/", message="File successfully uploaded! Redirecting soon...")
+        return render_template("redirect.html", dest="/search", message="File successfully uploaded! Redirecting soon...")
 
 @app.route("/logout")
 def logout():
