@@ -48,6 +48,7 @@ def search():
             WHERE association_file_tag.file_id = file.id AND tag_id IN (" + excludeStatement + "))"
     else:
         exclude = []
+    sql_statement = sql_statement + " ORDER BY id DESC"
     sql_results = db.engine.execute(sql_statement, include+exclude).fetchall()
     filenames = [r.filename for r in sql_results]
     if app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
