@@ -88,6 +88,7 @@ def view():
         if user_id != file.user_id:
             return render_template_string("Unauthorized"), 401
         tags = [tag.name for tag in file.tags]
+        tags.sort()
         return render_template("view.html", filename=filename, tags=tags, logged_in=1)
     elif request.method == "POST":
         user_id = auth.loggedInAs(request.form["session_token"])
