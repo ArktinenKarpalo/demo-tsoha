@@ -5,9 +5,8 @@
 }
 
 #view_left_wrapper {
-	display: block;
+	display: inline-block;
 	padding: 15px;
-	position: absolute;
 	width: 270px;
 }
 
