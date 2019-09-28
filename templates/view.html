@@ -2,13 +2,17 @@
 
 {% block head %}
 	<link rel="stylesheet" href="/static/css/view.css">
+	<script type="text/javascript" src="/static/js/autosuggest.js"></script>
 {% endblock %}
 
 {% block body %}
 	<div id="view_left">
 		<div id="view_left_wrapper">
 			<form method="post">
-				<input type="text" name="tags_to_add" autocomplete="off" placeholder="Tags separated by space">
+				<div id="tag_add_wrapper">
+					<input type="text" name="tags_to_add" id="tags_to_add" autocomplete="off" placeholder="Tags separated by space">
+					<script>init(document.getElementById("tags_to_add"));</script>
+				</div>
 				<input type="hidden" name="session_token" class="session_token">
 				<input type="submit" id="tag_btn" value="Add tag(s)">
 			</form>
