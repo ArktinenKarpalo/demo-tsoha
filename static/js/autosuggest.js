@@ -26,7 +26,7 @@ init = (input_field) => {
 			if(suggestion_list != null && suggestion_list.parentNode != null && curIndex >= beginIndex && curIndex < endIndex) {
 				input_tags = input_field.value;
 				input_tags = input_tags.split(" ");
-				input_tags.[input_tags.length-1] = tag_li[curIndex-beginIndex].textContent;
+				input_tags[input_tags.length-1] = tag_li[curIndex-beginIndex].textContent;
 				input_tags = input_tags.join(" ");
 				input_field.value = input_tags + " ";
 				beginIndex = -1;

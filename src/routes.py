@@ -1,4 +1,4 @@
-from flask import request, render_template, make_response, render_template_string, send_from_directory, redirect
+from flask import request, render_template, make_response, render_template_string, send_from_directory, redirect, jsonify
 from app import app
 from src.database.database import db
 from src.database.models import User, Session_token, File, Tag, association_file_tag
@@ -80,6 +80,11 @@ def search():
     current_page = max(1, min(math.ceil(offset/limit)+1, pages))
     return render_template("search.html", filenames=[filenames[i] for i in range(max(0, offset), min(offset+limit, len(filenames)))], logged_in=1, tags=sql_results2, pages=pages, current_page=current_page)
 
+@app.route("/tags")
+def tags():
+    user_id = auth.loggedInAs(request.cookies.get(key="session_token"))
+    return jsonify(db.session.query(Tag.name).filter_by(user_id=user_id).all())
+
 @app.route("/view", methods=["GET", "POST"])
 def view():
     filename = request.args.get("filename")
@@ -106,7 +111,7 @@ def view():
                 db.session.commit()
             return redirect("/view?filename="+filename)
         elif "tags_to_add" in request.form:
-            tags = request.form["tags_to_add"].split()
+            tags = map(lambda x: x.lower(), request.form["tags_to_add"].split())
             for tag_name in tags:
                 tag = Tag.query.filter_by(name=tag_name, user_id=user_id).first()
                 if tag == None:
