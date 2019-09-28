@@ -1,7 +1,7 @@
 from flask import Flask, url_for, redirect, render_template, request
 import os
 
-app = Flask("__name__")
+app = Flask("__name__", static_url_path="/static")
 app.config["UPLOAD_DIRECTORY"] = "./user_uploads/"
 if not os.path.exists(app.config["UPLOAD_DIRECTORY"]):
     os.makedirs(app.config["UPLOAD_DIRECTORY"])

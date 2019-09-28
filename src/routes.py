@@ -131,10 +131,6 @@ def view():
             os.remove(os.path.join(app.config["UPLOAD_DIRECTORY"], "thumb-" + file.filename))
             return redirect("/search")
 
-@app.route("/js/<path:path>")
-def js(path):
-    return send_from_directory("js", path)
-
 @app.route("/uploads/<path:path>")
 def uploads(path):
     return send_from_directory(app.config["UPLOAD_DIRECTORY"], path)

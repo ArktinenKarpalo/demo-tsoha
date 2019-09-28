@@ -24,7 +24,7 @@
 		{% endfor %}
 	</ul>
 	<script type="module">
-		import Cookies from "/js/js.cookie.mjs"
+		import Cookies from "/static/js/js.cookie.mjs"
 		const session_token = Cookies.get("session_token");
 		const elements = document.getElementsByClassName("session_token")
 		for(let i=0; i<elements.length; i++)
