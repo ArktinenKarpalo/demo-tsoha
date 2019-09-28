@@ -1,64 +1,76 @@
 {% extends "layout.html" %}
 
-{% block body %}
-	<input type="search" onkeydown="search(this)" name="tags" id="search_tags" placeholder="Search by tags" autocomplete="off">
-	<input type="button" onclick ="search()" value="Search">
-	<script>
-		search = (el) => {
-			if(el != null && event.key != "Enter")
-				return;
-			tags = document.getElementById("search_tags").value.split(" ");
-			include = [];
-			exclude = [];
-			for(let i=0; i<tags.length; i++) {
-				if(tags[i][0] == '-') {
-					exclude.push(tags[i].substring(1, tags[i].length));
-				} else {
-					include.push(tags[i]);
-				}
-			}
-			window.location.href = "/search?include=" + include.join(" ") + "&exclude=" + exclude.join(" ")
-		};
-	</script>
-	<ul>
-	{% for tag in tags %}
-		<li><a href="/search?include={{tag[0]}}">{{tag[0]}}</a> - {{tag[1]}}</li>
-	{% endfor %}
-	</ul>
-	<ul>
-	{% for filename in filenames %}
-		<li><a href="/view?filename={{filename}}"><img src="uploads/thumb-{{filename}}"></a></img></li>
-	{% endfor %}
-	<ul id="pages">
-	</ul>
-	<script>
-		const pages = document.getElementById("pages");
-		page_numbers = [];
-		for(let i=Math.max(1, {{current_page}}-5); i<=Math.min({{current_page}}+5, {{pages}}); i++)
-			page_numbers.push(i);
-		if(page_numbers[0] != 1)
-			page_numbers.unshift(1);
-		if(page_numbers[page_numbers.length-1] != {{pages}} && {{pages}})
-			page_numbers.push({{pages}});
+{% block head %}
+	<link rel="stylesheet" href="/static/css/search.css">
+{% endblock %}
 
-		const params = new URLSearchParams(window.location.search);
-		for(let i of page_numbers) {
-			const li = document.createElement("li");
-			if(i == {{current_page}}) {			
-				const span = document.createElement("span");
-				span.textContent = i;
-				li.appendChild(span);
-			} else {
-				const a = document.createElement("a");
-				a.textContent = i;
-				params.set("page", i);
-				a.href = "/search?" + params;
-				li.appendChild(a);
-			}
-			pages.appendChild(li);
-			console.log(i);
-		}
-		console.log(pages)
-	</script>
-	</ul>
+{% block body %}
+	<div id="search_wrap">
+		<div id="search_left">
+			<div id="search_left_wrapper">
+				<input type="search" onkeydown="search(this)" name="tags" id="search_tags" placeholder="Search by tags" autocomplete="off">
+				<input type="button" id="search_btn" onclick ="search()" value="Search">
+				<script>
+					search = (el) => {
+						if(el != null && event.key != "Enter")
+							return;
+						tags = document.getElementById("search_tags").value.split(" ");
+						include = [];
+						exclude = [];
+						for(let i=0; i<tags.length; i++) {
+							if(tags[i][0] == '-') {
+								exclude.push(tags[i].substring(1, tags[i].length));
+							} else {
+								include.push(tags[i]);
+							}
+						}
+						window.location.href = "/search?include=" + include.join(" ") + "&exclude=" + exclude.join(" ")
+					};
+				</script>
+				<ul>
+				{% for tag in tags %}
+					<li><a href="/search?include={{tag[0]}}">{{tag[0]}}</a> - {{tag[1]}}</li>
+				{% endfor %}
+				</ul>
+			</div>
+		</div>
+		<div id="search_right">
+			<ul id="search_files">
+				{% for filename in filenames %}
+					<li><a href="/view?filename={{filename}}"><img src="uploads/thumb-{{filename}}"></a></img></li>
+				{% endfor %}
+			</ul>
+		</div>
+		<ul id="pages">
+			<script>
+				const pages = document.getElementById("pages");
+				page_numbers = [];
+				for(let i=Math.max(1, {{current_page}}-5); i<=Math.min({{current_page}}+5, {{pages}}); i++)
+					page_numbers.push(i);
+				if(page_numbers[0] != 1)
+					page_numbers.unshift(1);
+				if(page_numbers[page_numbers.length-1] != {{pages}} && {{pages}})
+					page_numbers.push({{pages}});
+
+				const params = new URLSearchParams(window.location.search);
+				for(let i of page_numbers) {
+					const li = document.createElement("li");
+					if(i == {{current_page}}) {			
+						const span = document.createElement("span");
+						span.textContent = i;
+						li.appendChild(span);
+					} else {
+						const a = document.createElement("a");
+						a.textContent = i;
+						params.set("page", i);
+						a.href = "/search?" + params;
+						li.appendChild(a);
+					}
+					pages.appendChild(li);
+					console.log(i);
+				}
+				console.log(pages)
+			</script>
+		</ul>
+	</div>
 {% endblock %}

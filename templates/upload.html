@@ -1,13 +1,23 @@
 {% extends "layout.html" %}
 
+{% block head %}
+	<link rel="stylesheet" href="/static/css/upload.css">
+{% endblock %}
+
 {% block body %}
-	<form method="post" enctype="multipart/form-data">
-		<input type="file" name="file" multiple accept=".png,.jpg,.jpeg,.JPG">
-		<input type="hidden" name="session_token" id="session_token">
-		<input type="submit">
-	</form>
-	<script type="module">
-		import Cookies from "/static/js/js.cookie.mjs"
-		document.getElementById("session_token").value = Cookies.get("session_token");
-	</script>
+	<div id="upload_main">
+		<form method="post" enctype="multipart/form-data" id="upload_form">
+			<div id="upload_wrapper">
+				<input type="button" name="upload_btn" id="upload_btn" value="Upload file(s)">
+				<input type="file" name="file" id="upload_input" multiple accept=".png,.jpg,.jpeg,.JPG">
+			</div>
+			<input type="hidden" name="session_token" id="session_token">
+			</input>
+			<input type="submit" id="upload_submit">
+		</form>
+		<script type="module">
+			import Cookies from "/static/js/js.cookie.mjs"
+			document.getElementById("session_token").value = Cookies.get("session_token");
+		</script>
+	</div>
 {% endblock %}
