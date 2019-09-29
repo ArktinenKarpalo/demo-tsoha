@@ -86,7 +86,7 @@ suggestTags = (search) => {
 		endIndex = -1;
 		return;
 	}
-	beginIndex = 0;
+	beginIndex = -1;
 	for(let i = Math.log(tags.length)/Math.log(2); i>=0; i--) {
 		suggestion = beginIndex+(1<<i);
 		if(suggestion >= tags.length)
