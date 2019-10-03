@@ -6,6 +6,7 @@
 
 {% block body %}
 	<div id="upload_main">
+		<p>User quota: {{(used_quota/1000000000)|round(3, "ceil")}}/{{max_quota/1000000000}}GB</p>
 		<form method="post" enctype="multipart/form-data" id="upload_form">
 			<div id="upload_wrapper">
 				<input type="button" name="upload_btn" id="upload_btn" value="Upload file(s)">

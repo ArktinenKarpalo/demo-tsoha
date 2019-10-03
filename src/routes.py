@@ -150,7 +150,8 @@ def upload():
         if user_id == None:
             return render_template_string("Please log in first"), 401
         else:
-            return render_template("upload.html", logged_in=1)
+            user = User.query.filter_by(id=user_id).first()
+            return render_template("upload.html", logged_in=1, used_quota=user.used_quota, max_quota=user.max_quota)
     elif request.method == "POST":
         user_id = auth.loggedInAs(request.form["session_token"])
         if user_id == None:
