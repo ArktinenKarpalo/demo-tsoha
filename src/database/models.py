@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from src.database.database import db
+from app import app
 
 association_file_tag = db.Table("association_file_tag",
     db.Column("tag_id", db.Integer, db.ForeignKey("tag.id"), primary_key=True),
@@ -40,3 +41,54 @@ class Tag(db.Model):
     user = db.relationship("User")
 
 db.create_all()
+
+def search_by_tags(include, exclude, user_id):
+    sql_statement = "SELECT id, filename\
+        FROM file\
+        WHERE file.user_id=" + str(user_id)
+    if include != None and len(include) > 0:
+        include = include.split()
+        include = list(map(lambda tag: str((lambda result: result.id if result != None else -1)(db.session.query(Tag.id).filter_by(name=tag,user_id=user_id).first())), include))
+        include_count = len(include)
+        if app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
+            includeStatement = ",".join(["?" for i in range(len(include))])
+        else:
+            includeStatement = ",".join(["%s" for i in range(len(include))])
+        sql_statement = sql_statement + " AND (SELECT COUNT(*)\
+            FROM association_file_tag\
+            WHERE association_file_tag.file_id = file.id AND tag_id IN (" + includeStatement + ")) = " + str(include_count)
+    else:
+        include = []
+    if exclude != None and len(exclude) > 0:
+        exclude = exclude.split()
+        exclude = list(map(lambda tag: str((lambda result: result.id if result != None else -1)(db.session.query(Tag.id).filter_by(name=tag,user_id=user_id).first())), exclude))
+        if app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
+            excludeStatement = ",".join(["?" for i in range(len(exclude))])
+        else:
+            excludeStatement = ",".join(["%s" for i in range(len(exclude))])
+        sql_statement = sql_statement + " AND NOT EXISTS (SELECT id\
+            FROM association_file_tag\
+            WHERE association_file_tag.file_id = file.id AND tag_id IN (" + excludeStatement + "))"
+    else:
+        exclude = []
+    sql_statement = sql_statement + " ORDER BY id DESC"
+    return db.engine.execute(sql_statement, include+exclude).fetchall()
+def count_tags(filenames, file_ids):
+    if app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
+        sql_statement2 = "SELECT tag.name, COUNT(name)\
+            FROM association_file_tag\
+            LEFT JOIN TAG ON tag_id=tag.id\
+            WHERE file_id IN (" + ",".join(["?" for i in range(len(filenames))]) + ")\
+            GROUP BY tag.name\
+            ORDER BY name"
+    else:
+        sql_statement2 = "SELECT tag.name, COUNT(name)\
+            FROM association_file_tag\
+            LEFT JOIN TAG ON tag_id=tag.id\
+            WHERE file_id IN (" + ",".join(["%s" for i in range(len(filenames))]) + ")\
+            GROUP BY tag.name\
+            ORDER BY name"
+    if len(filenames) == 0:
+        return []
+    else:
+        return db.engine.execute(sql_statement2, file_ids).fetchall()

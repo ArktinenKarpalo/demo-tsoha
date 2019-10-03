@@ -1,7 +1,7 @@
 from flask import request, render_template, make_response, render_template_string, send_from_directory, redirect, jsonify
 from app import app
 from src.database.database import db
-from src.database.models import User, Session_token, File, Tag, association_file_tag
+from src.database.models import User, Session_token, File, Tag, association_file_tag, search_by_tags, count_tags
 from src import auth, utils
 import secrets, hashlib, os, math
 from PIL import Image
@@ -20,55 +20,9 @@ def search():
         return render_template_string("Couldn't search, not logged in!"), 401
     include = request.args.get("include")
     exclude = request.args.get("exclude")
-    sql_statement = "SELECT id, filename\
-        FROM file\
-        WHERE file.user_id=" + str(user_id)
-    if include != None and len(include) > 0:
-        include = include.split()
-        include = list(map(lambda tag: str((lambda result: result.id if result != None else -1)(db.session.query(Tag.id).filter_by(name=tag,user_id=user_id).first())), include))
-        include_count = len(include)
-        if app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
-            includeStatement = ",".join(["?" for i in range(len(include))])
-        else:
-            includeStatement = ",".join(["%s" for i in range(len(include))])
-        sql_statement = sql_statement + " AND (SELECT COUNT(*)\
-            FROM association_file_tag\
-            WHERE association_file_tag.file_id = file.id AND tag_id IN (" + includeStatement + ")) = " + str(include_count)
-    else:
-        include = []
-    if exclude != None and len(exclude) > 0:
-        exclude = exclude.split()
-        exclude = list(map(lambda tag: str((lambda result: result.id if result != None else -1)(db.session.query(Tag.id).filter_by(name=tag,user_id=user_id).first())), exclude))
-        if app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
-            excludeStatement = ",".join(["?" for i in range(len(exclude))])
-        else:
-            excludeStatement = ",".join(["%s" for i in range(len(exclude))])
-        sql_statement = sql_statement + " AND NOT EXISTS (SELECT id\
-            FROM association_file_tag\
-            WHERE association_file_tag.file_id = file.id AND tag_id IN (" + excludeStatement + "))"
-    else:
-        exclude = []
-    sql_statement = sql_statement + " ORDER BY id DESC"
-    sql_results = db.engine.execute(sql_statement, include+exclude).fetchall()
-    filenames = [r.filename for r in sql_results]
-    if app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
-        sql_statement2 = "SELECT tag.name, COUNT(name)\
-            FROM association_file_tag\
-            LEFT JOIN TAG ON tag_id=tag.id\
-            WHERE file_id IN (" + ",".join(["?" for i in range(len(filenames))]) + ")\
-            GROUP BY tag.name\
-            ORDER BY name"
-    else:
-        sql_statement2 = "SELECT tag.name, COUNT(name)\
-            FROM association_file_tag\
-            LEFT JOIN TAG ON tag_id=tag.id\
-            WHERE file_id IN (" + ",".join(["%s" for i in range(len(filenames))]) + ")\
-            GROUP BY tag.name\
-            ORDER BY name"
-    if len(filenames) == 0:
-        sql_results2 = []
-    else:
-        sql_results2 = db.engine.execute(sql_statement2, [r.id for r in sql_results]).fetchall()
+    search_results = search_by_tags(include, exclude, user_id)
+    filenames = [r.filename for r in search_results]
+    tags_with_count = count_tags(filenames, [r.id for r in search_results])
 
     offset = 0
     limit = 40
@@ -78,7 +32,7 @@ def search():
         offset = (int(request.args.get("page"))-1)*limit
     pages = math.ceil(len(filenames)/limit)
     current_page = max(1, min(math.ceil(offset/limit)+1, pages))
-    return render_template("search.html", filenames=[filenames[i] for i in range(max(0, offset), min(offset+limit, len(filenames)))], logged_in=1, tags=sql_results2, pages=pages, current_page=current_page)
+    return render_template("search.html", filenames=[filenames[i] for i in range(max(0, offset), min(offset+limit, len(filenames)))], logged_in=1, tags=tags_with_count, pages=pages, current_page=current_page)
 
 @app.route("/tags")
 def tags():
