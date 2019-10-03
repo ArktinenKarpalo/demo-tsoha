@@ -90,6 +90,8 @@ def view():
     filename = request.args.get("filename")
     file = File.query.filter_by(filename=filename).first()
     if request.method == "GET":
+        if file == None:
+            return render_template_string("The file does not exist")
         user_id = auth.loggedInAs(request.cookies.get(key="session_token"))
         if user_id != file.user_id:
             return render_template_string("Unauthorized"), 401
@@ -97,6 +99,8 @@ def view():
         tags.sort()
         return render_template("view.html", filename=filename, tags=tags, logged_in=1)
     elif request.method == "POST":
+        if file == None:
+            return redirect("/")
         user_id = auth.loggedInAs(request.form["session_token"])
         if user_id != file.user_id:
             return render_template_string("Unauthorized"), 401
@@ -134,10 +138,18 @@ def view():
             db.session.flush()
             db.session.delete(file)
             user = User.query.filter_by(id=user_id).first()
-            user.used_quota -= os.stat(os.path.join(app.config["UPLOAD_DIRECTORY"], file.filename)).st_size
+            try:
+                user.used_quota -= os.stat(os.path.join(app.config["UPLOAD_DIRECTORY"], file.filename)).st_size
+                os.remove(os.path.join(app.config["UPLOAD_DIRECTORY"], file.filename))
+            except FileNotFoundError as err:
+                # We can ignore this for the demo on heroku, because heroku deletes saved files after each restart
+                pass
+            try:
+                os.remove(os.path.join(app.config["UPLOAD_DIRECTORY"], "thumb-" + file.filename))
+            except FileNotFoundError as err:
+                # We can ignore this for the demo on heroku, because heroku deletes saved files after each restart
+                pass
             db.session.commit()
-            os.remove(os.path.join(app.config["UPLOAD_DIRECTORY"], file.filename))
-            os.remove(os.path.join(app.config["UPLOAD_DIRECTORY"], "thumb-" + file.filename))
             return redirect("/search")
 
 @app.route("/uploads/<path:path>")
