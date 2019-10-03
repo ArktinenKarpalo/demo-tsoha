@@ -113,6 +113,8 @@ def view():
         elif "tags_to_add" in request.form:
             tags = map(lambda x: x.lower(), request.form["tags_to_add"].split())
             for tag_name in tags:
+                if len(tag_name) > 128:
+                    continue
                 tag = Tag.query.filter_by(name=tag_name, user_id=user_id).first()
                 if tag == None:
                     tag = Tag(name=tag_name,user_id=user_id,used_count=1)
