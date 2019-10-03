@@ -4,6 +4,7 @@ Alustava dokumentaatio (kesken)
 ## Lyhyesti
 
 Sovellus on testattavissa Herokussa, ja sen pitäisi toimia ainakin chromiumilla ja firefoxilla.
+
 [Heroku](https://demo-tsoha.herokuapp.com/)
 
 ### Huom!
@@ -12,11 +13,24 @@ Ongelma on ratkaistavissa esim. jollain pilvipalvelulla, mutta sovelluksen perus
 
 ## Käyttöohje
 
+Sovelluksen käytön aloittaminen vaatii rekisteröitymistä ja kirjautumista. Sovelluksen muun käytön ei pitäisi vaatia erillisiä ohjeita.
+Tarkempaa opastusta löytyy sovelluksesta sisäänkirjautumisen jälkeen.
+
 ## Asennusohje
+
+### Development
+Sovellus vaatii toimiakseen development-ympäristössä vähintään version 3.7.4 Pythonin, 3.29.0 SQLiten ja requirements.txt sisältämät Python-kirjastot ja niiden mahdolliset riippuvuudet.
+Tarvittavat kirjastot voi asentaa esimerkiksi pip-package installerilla `pip install -r requirements.txt`-komennolla.
+
+Sovelluksen saa käyntiin suorittamalla run_dev.sh tiedoston.
+
+### Heroku
+Sovelluksen voi deployata Herokuun muuten sellaisenaan, mutta vaaditaan `HEROKU=1` ja `DATABASE_URL` ympäristömuuttujat, joista jälkimmäisen arvo kertoo PostgreSQL-tietokannan Connection URI-osoitteen libpq vaatimassa formaatissa, halutessaan voi suoraan käyttää Herokun Postgres-lisäosaa.
 
 ## Käyttötapaukset ja toiminnot
 
 Tarkoituksena on laatia sivusto, johon käyttäjä pystyy rekisteröitymään ja lataamaan tiedostoja, pääasiassa kuvia. Tiedostoille pystyy merkitsemään tageja, tagien avulla voi hakea tiedostoja. Käyttäjän tiedostot näkyvät vain hänelle itselleen. Pääkäyttäjä voi säätää käyttäjille quotan levytilan käyttöön, jota käyttäjä ei pysty ylittämään.
+
 Toimintoja:
 - Kirjautuminen, rekisteröinti
 - Tiedostojen lataus sivustolle

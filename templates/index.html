@@ -3,11 +3,13 @@
 {% block body %}
 	{% if logged_in %}
 	<p>This application allows the user to upload image files, tag them and filter them with the given tags.</p>
-	<h3>Usage</h3>
-	<p>When using search, separate tags by space, write - in front of tag to exclude the tag.</p>
-	<p>Example: searching with: tag1 tag2 -tag3, displays results that have tag1 and tag2, but not tag3.</p>
-	<p>Search field suggests autocompletions, use arrow keys and enter to navigate them.</p>
-	<p>Currently supports only common image file formats (png, jpg), but support for other files could be added by using pre-determined thumbnails/generated previews.</p>
+	<h4>Tips</h4>
+	<ul>
+		<li>Tags may not contain spaces</li>
+		<li>Search field suggests autocompletions, use arrow keys and enter to navigate them.</li>
+		<li>Example: searching with: tag1 tag2 -tag3, displays results that have tag1 AND tag2, but NOT tag3.</li>
+		<li>Currently supporting only common image file formats (png, jpg), but support for other files could be added.</li>
+	</ul>
 	{% else %}
 	<h3>Please register or log in</h3>
 	<p>This application is a demo for course TKT20011</p>
