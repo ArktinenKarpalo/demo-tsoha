@@ -28,7 +28,7 @@ class Session_token(db.Model):
 class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(255), nullable=False, unique=True, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), Index=true)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
     user = db.relationship("User")
     tags = db.relationship("Tag", secondary=association_file_tag)
 
