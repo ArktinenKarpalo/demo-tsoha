@@ -34,7 +34,7 @@ def admin():
         user = User.query.filter_by(id=user_id).first()
         if user.admin:
             target_user = User.query.filter_by(username = request.form["username"]).first()
-            target_user.max_quota = min(request.form["max_quota"], 1e15)
+            target_user.max_quota = min(int(request.form["max_quota"]), 1e15)
             if request.form["admin"] == "True":
                 target_user.admin = True
             elif request.form["admin"] == "False":
