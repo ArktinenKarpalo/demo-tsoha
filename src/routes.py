@@ -8,16 +8,48 @@ from PIL import Image
 
 @app.route("/")
 def index():
-    if auth.loggedInAs(request.cookies.get(key="session_token")) == None:
+    user_id = auth.loggedInAs(request.cookies.get(key="session_token"))
+    if user_id == None:
         return render_template("index.html", logged_in=0)
     else:
-        return render_template("index.html", logged_in=1)
+        user = User.query.filter_by(id=user_id).first()
+        return render_template("index.html", logged_in=1, admin=user.admin)
+
+@app.route("/admin", methods=["GET", "POST"])
+def admin():
+    if request.method == "GET":
+        user_id = auth.loggedInAs(request.cookies.get(key="session_token"))
+        if user_id == None:
+            return render_template_string("Not logged in"),401
+        user = User.query.filter_by(id=user_id).first()
+        if user.admin:
+            users = User.query.order_by(User.username).all()
+            return render_template("admin.html", logged_in=1, admin=1, users=users)
+        else:
+            return render_template_string("Unauthorized"),401
+    elif request.method == "POST":
+        user_id = auth.loggedInAs(request.form["session_token"])
+        if user_id == None:
+            return render_template_string("Unauthorized"), 401
+        user = User.query.filter_by(id=user_id).first()
+        if user.admin:
+            target_user = User.query.filter_by(username = request.form["username"]).first()
+            target_user.max_quota = request.form["max_quota"]
+            if request.form["admin"] == "True":
+                target_user.admin = True
+            elif request.form["admin"] == "False":
+                target_user.admin = False
+            db.session.commit()
+            return redirect("#")
+        else:
+            return render_template_string("Unauthorized"), 401
 
 @app.route("/search")
 def search():
     user_id = auth.loggedInAs(request.cookies.get(key="session_token"))
     if user_id == None:
         return render_template_string("Couldn't search, not logged in!"), 401
+    user = User.query.filter_by(id=user_id).first()
     include = request.args.get("include")
     exclude = request.args.get("exclude")
     search_results = search_by_tags(include, exclude, user_id)
@@ -32,7 +64,7 @@ def search():
         offset = (int(request.args.get("page"))-1)*limit
     pages = math.ceil(len(filenames)/limit)
     current_page = max(1, min(math.ceil(offset/limit)+1, pages))
-    return render_template("search.html", filenames=[filenames[i] for i in range(max(0, offset), min(offset+limit, len(filenames)))], logged_in=1, tags=tags_with_count, pages=pages, current_page=current_page)
+    return render_template("search.html", filenames=[filenames[i] for i in range(max(0, offset), min(offset+limit, len(filenames)))], logged_in=1, tags=tags_with_count, pages=pages, current_page=current_page, admin=user.admin)
 
 @app.route("/tags")
 def tags():
@@ -51,7 +83,8 @@ def view():
             return render_template_string("Unauthorized"), 401
         tags = [tag.name for tag in file.tags]
         tags.sort()
-        return render_template("view.html", filename=filename, tags=tags, logged_in=1)
+        user = User.query.filter_by(id=user_id).first()
+        return render_template("view.html", filename=filename, tags=tags, logged_in=1, admin=user.admin)
     elif request.method == "POST":
         if file == None:
             return redirect("/")
@@ -119,7 +152,7 @@ def upload():
             return render_template_string("Please log in first"), 401
         else:
             user = User.query.filter_by(id=user_id).first()
-            return render_template("upload.html", logged_in=1, used_quota=user.used_quota, max_quota=user.max_quota)
+            return render_template("upload.html", logged_in=1, used_quota=user.used_quota, max_quota=user.max_quota, admin=user.admin)
     elif request.method == "POST":
         user_id = auth.loggedInAs(request.form["session_token"])
         if user_id == None:
@@ -178,6 +211,8 @@ def register():
         salt = secrets.token_bytes(64)
         hashed = hashlib.scrypt(password=request.form["password"].encode(), salt=salt, n=16384, r=8, p=1)
         user = User(username = request.form["username"], admin=False, used_quota=0, max_quota=1e9, password_salt=salt, password_hash=hashed)
+        if user.username == "Admin":
+            user.admin = True
         db.session.add(user)
         db.session.commit()
         resp = make_response(render_template("redirect.html", message="Registration successful! Redirecting soon...", dest="/login"))

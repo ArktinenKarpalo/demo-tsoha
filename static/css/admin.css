@@ -1,0 +1,27 @@
+#admin_main {
+	padding: 15px 25px;
+}
+
+#admin_wrapper table {
+	border-collapse: collapse;
+}
+#admin_wrapper table tr td {
+	border: 1px black solid;
+	height: 24px;
+}
+
+.used_quota_cell {
+	width: 100px;
+}
+.max_quota_cell {
+	width: 100px;
+}
+.admin_cell {
+	width: 50px;
+	text-align: center;
+}
+.username_cell {
+	min-width: 320px;
+	overflow: auto;
+	max-width: 320px;
+}

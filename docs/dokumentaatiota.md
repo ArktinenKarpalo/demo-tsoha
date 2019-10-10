@@ -13,6 +13,8 @@ Ongelma on ratkaistavissa esim. jollain pilvipalvelulla, mutta sovelluksen perus
 
 ## Käyttöohje
 
+Admin-nimisellä käyttäjällä ensimmäisen kerran rekisteröitymällä saa admin-oikeudet.
+
 Sovelluksen käytön aloittaminen vaatii rekisteröitymistä ja kirjautumista. Sovelluksen muun käytön ei pitäisi vaatia erillisiä ohjeita.
 Tarkempaa opastusta löytyy sovelluksesta sisäänkirjautumisen jälkeen.
 
