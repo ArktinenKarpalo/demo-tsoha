@@ -1,5 +1,4 @@
 # Dokumentaatio
-Alustava dokumentaatio (kesken)
 
 ## Lyhyesti
 
@@ -39,11 +38,11 @@ Toimintoja:
 - Tiedoston tagien muuttaminen
 - Tiedostojen haku tageilla
 - Tiedostojen poisto
-- Quota käyttäjille
+- Quotan asetus käyttäjille, ja tämän hallinta admin-käyttäjällä
 
 ## Tietokantarakenne
 
-SQL-lauseet tietokantataulujen luomiseen
+SQL-lauseet tietokantataulujen luomiseen SQLite-tietokannassa
 
 ```SQL
 CREATE TABLE User (
@@ -94,7 +93,33 @@ CREATE TABLE association_file_tag (
 	FOREIGN KEY(file_id) REFERENCES File(id)
 );
 ```
+SQL-Kyselyitä
+
+Kysely hakuun tageilla filtteröintiin.
+```SQL
+SELECT id, filename
+	FROM file
+	WHERE file.user_id="user_id"
+	AND (SELECT COUNT(*)
+		FROM association_file_tag
+		WHERE association_file_tag.file_id = file.id AND tag_id IN(lista include-tageista)) = include-tagien määrä
+	AND NOT EXISTS (SELECT id
+		FROM association_file_tag
+		WHERE association_file_tag.file_id = file.id AND tag_id IN(lista exclude-tageista))
+```
+
+Kysely, jolla lasketaan hakutulosten sisältämien tagien määrä.
+```SQL
+SELECT tag.name, COUNT(name)
+	FROM association_file_tag
+	LEFT JOIN TAG ON tag_id=tag.id
+	WHERE file_id IN (file_id-lista haun tuloksista)
+	GROUP BY tag.name
+	ORDER BY name
+```
 
 [Tietokantakaavio](https://github.com/ArktinenKarpalo/demo-tsoha/blob/master/docs/tietokantakaavio.png)
 
-## Jatkokehitysideat
+## Toteuttamatta jääneet toiminnot ja jatkokehitysideat
+Kaikki suunnitellut toiminnallisuudet toteutettiin.
+Sovellusta voisi kuitenkin kehittää pidemmälle ja parantaa mm. helpottamalla tagien lisäämistä tiedostoille, lisäämällä tuen useammille tiedostoformaateille.
