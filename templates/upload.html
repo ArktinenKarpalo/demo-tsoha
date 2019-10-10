@@ -7,18 +7,51 @@
 {% block body %}
 	<div id="upload_main">
 		<p>User quota: {{(used_quota/1000000000)|round(3, "ceil")}}/{{max_quota/1000000000}}GB</p>
-		<form method="post" enctype="multipart/form-data" id="upload_form">
+		<form id="upload_form">
 			<div id="upload_wrapper">
 				<input type="button" name="upload_btn" id="upload_btn" value="Upload file(s)">
 				<input type="file" name="file" id="upload_input" multiple accept=".png,.jpg,.jpeg,.JPG">
 			</div>
-			<input type="hidden" name="session_token" id="session_token">
-			</input>
-			<input type="submit" id="upload_submit">
 		</form>
+		<div id="upload_progress">
+			<h1 id="upload_progress_uploaded"></h1>
+			<h2 id="upload_progress_percentage"></h2>
+		</div>
 		<script type="module">
-			import Cookies from "/static/js/js.cookie.mjs"
-			document.getElementById("session_token").value = Cookies.get("session_token");
+			import Cookies from "/static/js/js.cookie.mjs";
+			const session_token = Cookies.get("session_token");
+			
+			const file_input = document.getElementById("upload_input");
+			const upload_form = document.getElementById("upload_form");
+			const upload_progress = document.getElementById("upload_progress");
+			const upload_progress_uploaded = document.getElementById("upload_progress_uploaded");
+			const upload_progress_percentage = document.getElementById("upload_progress_percentage");
+
+			file_input.addEventListener("change", async (ev) => {
+				if(file_input.files.length == 0)
+					return;
+				const previous_display = upload_form.style.display;
+				upload_form.style.display = "none";
+				upload_progress_uploaded.textContent = "0/" + file_input.files.length + " files uploaded";
+				upload_progress_percentage.textContent = "0%"
+				for(let i=0; i<file_input.files.length; i++) {
+					const upload_data = new FormData();
+					upload_data.append("session_token", session_token);
+					upload_data.append("file", file_input.files[i]);
+					const upload_promise = new Promise((res, rej) => {
+						const req = new XMLHttpRequest();
+						req.open("POST", "/upload");
+						req.addEventListener("load", () => {
+							res();
+						});
+						req.send(upload_data);
+					});
+					await upload_promise;
+					upload_progress_uploaded.textContent = (i+1) + "/" + file_input.files.length + " files uploaded";
+					upload_progress_percentage.textContent = ((i+1)*100.0/file_input.files.length).toFixed(2) + "%"
+				}
+				upload_form.style.display = previous_display;
+			});
 		</script>
 	</div>
 {% endblock %}
