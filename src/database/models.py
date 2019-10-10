@@ -21,22 +21,22 @@ class User(db.Model):
 
 class Session_token(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    session_token = db.Column(db.String(128), nullable=False, unique=True)
+    session_token = db.Column(db.String(128), nullable=False, unique=True, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     user = db.relationship("User")
 
 class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    filename = db.Column(db.String(255), nullable=False, unique=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    filename = db.Column(db.String(255), nullable=False, unique=True, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), Index=true)
     user = db.relationship("User")
     tags = db.relationship("Tag", secondary=association_file_tag)
 
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128), nullable=False)
+    name = db.Column(db.String(128), nullable=False, index=True)
     used_count = db.Column(db.Integer, nullable=False) # How many files use this tag
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
     files = db.relationship("File", secondary=association_file_tag)
     user = db.relationship("User")
 
