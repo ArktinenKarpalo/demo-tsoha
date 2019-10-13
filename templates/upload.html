@@ -42,11 +42,20 @@
 						const req = new XMLHttpRequest();
 						req.open("POST", "/upload");
 						req.addEventListener("load", () => {
-							res();
+							if(req.status == 200) {
+								res();
+							} else {
+								rej(req.response);
+							}
 						});
 						req.send(upload_data);
 					});
-					await upload_promise;
+					try {
+						await upload_promise;
+					} catch(err) {
+						upload_progress_uploaded.textContent = "Error: " + err;
+						break;
+					}
 					upload_progress_uploaded.textContent = (i+1) + "/" + file_input.files.length + " files uploaded";
 					upload_progress_percentage.textContent = ((i+1)*100.0/file_input.files.length).toFixed(2) + "%"
 				}
