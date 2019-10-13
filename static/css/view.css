@@ -38,6 +38,10 @@
 	width: 250px;
 }
 
+#view_left_submit {
+	background-color: white;
+}
+
 #tag_btn {
 	background-color: rgba(149, 165, 166,1.0);
 	border-radius: 5px;
