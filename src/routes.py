@@ -20,13 +20,13 @@ def admin():
     if request.method == "GET":
         user_id = auth.loggedInAs(request.cookies.get(key="session_token"))
         if user_id == None:
-            return render_template_string("Not logged in"),401
+            return render_template_string("Not logged in"), 401
         user = User.query.filter_by(id=user_id).first()
         if user.admin:
             users = User.query.order_by(User.username).all()
             return render_template("admin.html", logged_in=1, admin=1, users=users)
         else:
-            return render_template_string("Unauthorized"),401
+            return render_template_string("Unauthorized"), 401
     elif request.method == "POST":
         user_id = auth.loggedInAs(request.form["session_token"])
         if user_id == None:
