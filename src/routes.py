@@ -210,7 +210,7 @@ def register():
             return ("Error while registering! User with the username: " + request.form["username"] + " already exists!")
         salt = secrets.token_bytes(64)
         hashed = hashlib.scrypt(password=request.form["password"].encode(), salt=salt, n=16384, r=8, p=1)
-        user = User(username = request.form["username"], admin=False, used_quota=0, max_quota=1e9, password_salt=salt, password_hash=hashed)
+        user = User(username = request.form["username"], admin=False, used_quota=0, max_quota=1e8, password_salt=salt, password_hash=hashed)
         if user.username == "Admin":
             user.admin = True
         db.session.add(user)
