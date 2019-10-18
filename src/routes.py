@@ -99,7 +99,8 @@ def view():
                 else:
                     file.tags.remove(tag)
                     tag.used_count -= 1
-                db.session.commit()
+                    db.session.flush()
+            db.session.commit()
             return redirect("/view?filename="+filename)
         elif "tags_to_add" in request.form:
             tags = map(lambda x: x.lower(), request.form["tags_to_add"].split())
