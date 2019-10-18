@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from src.database.database import db
 from app import app
+from datetime import *
 
 association_file_tag = db.Table("association_file_tag",
     db.Column("tag_id", db.Integer, db.ForeignKey("tag.id"), primary_key=True),
@@ -24,6 +25,7 @@ class Session_token(db.Model):
     session_token = db.Column(db.String(128), nullable=False, unique=True, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     user = db.relationship("User")
+    last_access = db.Column(db.DateTime, default=datetime.utcnow())
 
 class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
