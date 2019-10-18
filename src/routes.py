@@ -20,17 +20,17 @@ def admin():
     if request.method == "GET":
         user_id = auth.loggedInAs(request.cookies.get(key="session_token"))
         if user_id == None:
-            return render_template_string("Not logged in"), 401
+            return render_template("redirect.html", dest="/login", message="Not logged in")
         user = User.query.filter_by(id=user_id).first()
         if user.admin:
             users = User.query.order_by(User.username).all()
             return render_template("admin.html", logged_in=1, admin=1, users=users)
         else:
-            return render_template_string("Unauthorized"), 401
+            return render_template("redirect.html", dest="/", message="Unauthorized")
     elif request.method == "POST":
         user_id = auth.loggedInAs(request.form["session_token"])
         if user_id == None:
-            return render_template_string("Unauthorized"), 401
+            return render_template("redirect.html", dest="/", message="Unauthorized")
         user = User.query.filter_by(id=user_id).first()
         if user.admin:
             target_user = User.query.filter_by(username = request.form["username"]).first()
@@ -42,13 +42,13 @@ def admin():
             db.session.commit()
             return redirect("#")
         else:
-            return render_template_string("Unauthorized"), 401
+            return render_template("redirect.html", dest="/", message="Unauthorized")
 
 @app.route("/search")
 def search():
     user_id = auth.loggedInAs(request.cookies.get(key="session_token"))
     if user_id == None:
-        return render_template_string("Couldn't search, not logged in!"), 401
+        return render_template("redirect.html", dest="/login", message="Not logged in")
     user = User.query.filter_by(id=user_id).first()
     include = request.args.get("include")
     exclude = request.args.get("exclude")
@@ -77,10 +77,10 @@ def view():
     file = File.query.filter_by(filename=filename).first()
     if request.method == "GET":
         if file == None:
-            return render_template_string("The file does not exist")
+            return render_template("redirect.html", dest="/view", message="The file does not exist")
         user_id = auth.loggedInAs(request.cookies.get(key="session_token"))
         if user_id != file.user_id:
-            return render_template_string("Unauthorized"), 401
+            return render_template("redirect.html", dest="/", message="Unauthorized")
         tags = [tag.name for tag in file.tags]
         tags.sort()
         user = User.query.filter_by(id=user_id).first()
@@ -90,7 +90,7 @@ def view():
             return redirect("/")
         user_id = auth.loggedInAs(request.form["session_token"])
         if user_id != file.user_id:
-            return render_template_string("Unauthorized"), 401
+            return render_template("redirect.html", dest="/", message="Unauthorized")
         if "tag_to_remove" in request.form:
             tag = Tag.query.filter_by(name=request.form["tag_to_remove"], user_id=user_id).first()
             if tag != None:
@@ -150,16 +150,16 @@ def upload():
     if request.method == "GET":
         user_id = auth.loggedInAs(request.cookies.get(key="session_token"))
         if user_id == None:
-            return render_template_string("Please log in first"), 401
+            return render_template("redirect.html", dest="/login", message="Not logged in")
         else:
             user = User.query.filter_by(id=user_id).first()
             return render_template("upload.html", logged_in=1, used_quota=user.used_quota, max_quota=user.max_quota, admin=user.admin)
     elif request.method == "POST":
         user_id = auth.loggedInAs(request.form["session_token"])
         if user_id == None:
-            return render_template_string("Couldn't upload file, not logged in."), 401
+            return render_template("redirect.html", dest="/login", message="Not logged in")
         if "file" not in request.files:
-            return render_template_string("Missing file."), 400
+            return render_template("redirect.html", dest="/upload", message="Missing file")
         for file in request.files.getlist("file"):
             extension = utils.fileExtension(file.filename)
             if extension not in allowedExtensions:
@@ -200,15 +200,15 @@ def register():
             return render_template("redirect.html", dest="/", message="Already logged in! Redirecting soon...")
     elif request.method == "POST" :
         if len(request.form["username"]) < 1:
-            return ("Error while registering! Username is too short.")
+            return render_template("redirect.html", dest="/register", message="Username is too short!")
         if len(request.form["username"]) > 32:
-            return ("Error while registering! Username is too long.")
+            return render_template("redirect.html", dest="/register", message="Username is too long!")
         if len(request.form["password"]) < 1:
-            return ("Error while registering! Password is too short.")
+            return render_template("redirect.html", dest="/register", message="Password is too short!")
         if len(request.form["password"]) > 128:
-            return ("Error while registering! Password is too long.")
+            return render_template("redirect.html", dest="/register", message="Password is too long!")
         if User.query.filter_by(username=request.form["username"]).count() != 0:
-            return ("Error while registering! User with the username: " + request.form["username"] + " already exists!")
+            return render_template("redirect.html", dest="/register", message="User with the username: " + request.form["username"] + " already exists!")
         salt = secrets.token_bytes(64)
         hashed = hashlib.scrypt(password=request.form["password"].encode(), salt=salt, n=16384, r=8, p=1)
         user = User(username = request.form["username"], admin=False, used_quota=0, max_quota=1e8, password_salt=salt, password_hash=hashed)
@@ -229,18 +229,18 @@ def login():
             return render_template("redirect.html", message="Already logged in! Redirecting soon...", dest="/")
     elif request.method == "POST" :
         if len(request.form["username"]) < 1:
-            return ("Error while logging in! Username is too short.")
+            return render_template("redirect.html", dest="/login", message="Username is too short!")
         if len(request.form["username"]) > 32:
-            return ("Error while logging in! Username is too long.")
+            return render_template("redirect.html", dest="/login", message="Username is too long!")
         if len(request.form["password"]) < 1:
-            return ("Error while logging in! Password is too short.")
+            return render_template("redirect.html", dest="/login", message="Password is too short!")
         if len(request.form["password"]) > 128:
-            return ("Error while logging in! Password is too long.")
+            return render_template("redirect.html", dest="/login", message="Password is too long!")
         user = User.query.filter_by(username=request.form["username"]).first()
         if user == None:
-            return "Username or password invalid!"
+            return render_template("redirect.html", dest="/login", message="Username or password is invalid!")
         if user.password_hash != hashlib.scrypt(password=request.form["password"].encode(), salt=user.password_salt, n=16384, r=8, p=1):
-            return "Username or password invalid!"
+            return render_template("redirect.html", dest="/login", message="Username or password is invalid!")
         session_token = secrets.token_hex(64)
         sessionToken = Session_token(user_id=user.id, session_token=session_token)
         db.session.add(sessionToken)

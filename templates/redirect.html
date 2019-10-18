@@ -1,6 +1,18 @@
-<p>{{message}}</p>
-<script>
-	window.setTimeout(() => {
-		location.href = {{dest|tojson}};
-	}, 0);
-</script>
+{% extends "layout.html" %}
+
+{% block head %}
+	<link rel="stylesheet" href="/static/css/redirect.css">
+{% endblock %}
+
+{% block body %}
+	<div id="redirect_wrapper">
+		<p>{{message}}</p>
+		<script>
+			window.setTimeout(() => {
+				location.href = {{dest|tojson}};
+			}, 3000);
+		</script>
+		<h2>Redirecting soon!</h2>
+		<a id="redirect_link" href={{dest|tojson}}>Redirect now</a>
+	</div>
+{% endblock %}
