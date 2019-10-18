@@ -1,4 +1,4 @@
-#Dokumentaatio
+# Dokumentaatio
 
 ## Lyhyesti
 
@@ -15,7 +15,7 @@ Ongelma on ratkaistavissa esim. jollain pilvipalvelulla, mutta sovelluksen perus
 Admin-nimisellä käyttäjällä ensimmäisen kerran rekisteröitymällä saa admin-oikeudet.
 
 Sovelluksen käytön aloittaminen vaatii rekisteröitymistä ja kirjautumista. Sovelluksen muun käytön ei pitäisi vaatia erillisiä ohjeita.
-Tarkempaa opastusta löytyy sovelluksesta sisäänkirjautumisen jälkeen.
+Tarkempaa opastusta joihinkin toimintoihin löytyy kuitenkin sovelluksesta sisäänkirjautumisen jälkeen.
 
 ## Asennusohje
 
