@@ -85,7 +85,7 @@ setIndex = (index) => {
 };
 
 suggestTags = (search) => {
-	if(search.length == 0) {
+	if(search.length == 0 || (search.length == 1 && search[0] == '-')) {
 		endIndex = -1;
 		return;
 	}
