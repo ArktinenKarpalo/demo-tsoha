@@ -1,4 +1,5 @@
 Click==7.0
+filetype==1.0.5
 Flask==1.1.1
 Flask-SQLAlchemy==2.4.0
 gunicorn==19.9.0

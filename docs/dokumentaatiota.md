@@ -6,10 +6,6 @@ Sovellus on testattavissa Herokussa, ja sen pitäisi toimia ainakin chromiumilla
 
 [Heroku](https://demo-tsoha.herokuapp.com/)
 
-### Huom!
-Heroku poistaa palvelimelle tallennetut tiedostot palvelimen uudelleenkäynnistyksen yhteydessä, joka aiheuttaa virheitä.
-Ongelma on ratkaistavissa esim. jollain pilvipalvelulla, mutta sovelluksen perustoiminnallisuuden demonstroinnin kannalta ei kuvien pitempiaikaista säilyvyyttä Herokussa tarvita. 
-
 ## Käyttöohje
 
 Admin-nimisellä käyttäjällä ensimmäisen kerran rekisteröitymällä saa admin-oikeudet.
@@ -27,6 +23,11 @@ Sovelluksen saa käyntiin suorittamalla run_dev.sh tiedoston.
 
 ### Heroku
 Sovelluksen voi deployata Herokuun muuten sellaisenaan, mutta vaaditaan `HEROKU=1` ja `DATABASE_URL` ympäristömuuttujat, joista jälkimmäisen arvo kertoo PostgreSQL-tietokannan Connection URI-osoitteen libpq vaatimassa formaatissa, halutessaan voi suoraan käyttää Herokun Postgres-lisäosaa.
+
+#### FTP
+
+Tiedostojen tallentamiseen (esim. Herokussa) voidaan käyttää TLS FTP-palvelinta.
+Tämä vaatii seuraavat ympäristömuuttujat `FTP_USER` `FTP_PASSWORD` `FTP_URL`
 
 ## Käyttötapaukset ja toiminnot
 
@@ -149,3 +150,4 @@ WHERE id=1
 ## Toteuttamatta jääneet toiminnot ja jatkokehitysideat
 Kaikki suunnitellut toiminnallisuudet toteutettiin.
 Sovellusta voisi kuitenkin kehittää pidemmälle ja parantaa mm. helpottamalla tagien lisäämistä tiedostoille, lisäämällä tuen useammille tiedostoformaateille.
+Herokussa tiedostojen tallentamiseen voisi FTP sijaan voisi käyttää jotain muuta, hieman tehokkaampaa ratkaisua. Tietokantaa väärinkäyttämällä saisi operaatiot nopeammaksi, mutta kokoraja Herokussa on kuville riittämätön.

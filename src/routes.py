@@ -1,9 +1,9 @@
-from flask import request, render_template, make_response, render_template_string, send_from_directory, redirect, jsonify
+from flask import request, render_template, make_response, render_template_string, send_from_directory, redirect, jsonify, send_file
 from app import app
 from src.database.database import db
 from src.database.models import User, Session_token, File, Tag, association_file_tag, search_by_tags, count_tags
-from src import auth, utils
-import secrets, hashlib, os, math
+from src import auth, utils, storage
+import secrets, hashlib, os, math, io, filetype
 from PIL import Image
 
 @app.route("/")
@@ -126,23 +126,18 @@ def view():
             db.session.flush()
             db.session.delete(file)
             user = User.query.filter_by(id=user_id).first()
-            try:
-                user.used_quota -= os.stat(os.path.join(app.config["UPLOAD_DIRECTORY"], file.filename)).st_size
-                os.remove(os.path.join(app.config["UPLOAD_DIRECTORY"], file.filename))
-            except FileNotFoundError as err:
-                # We can ignore this for the demo on heroku, because heroku deletes saved files after each restart
-                pass
-            try:
-                os.remove(os.path.join(app.config["UPLOAD_DIRECTORY"], "thumb-" + file.filename))
-            except FileNotFoundError as err:
-                # We can ignore this for the demo on heroku, because heroku deletes saved files after each restart
-                pass
+            user.used_quota -= storage.get_file_size(file.filename)
+            storage.delete_file(file.filename)
+            storage.delete_file("thumb-" + file.filename)
             db.session.commit()
             return redirect("/search")
 
 @app.route("/uploads/<path:path>")
 def uploads(path):
-    return send_from_directory(app.config["UPLOAD_DIRECTORY"], path)
+    file_buf = storage.get_file(path)
+    mimetype = filetype.guess_mime(file_buf.read())
+    file_buf.seek(0)
+    return send_file(file_buf, mimetype=mimetype)
 
 allowedExtensions = {"jpg", "JPG", "png", "jpeg"}
 @app.route("/upload", methods=["GET", "POST"])
@@ -168,19 +163,22 @@ def upload():
             file_row = File(user_id=user_id, filename=filename)
             db.session.add(file_row)
             db.session.flush()
-            file.save(os.path.join(app.config["UPLOAD_DIRECTORY"], filename))
+            storage.save_file(filename, file)
             user = User.query.filter_by(id=user_id).first()
-            upload_size = os.stat(os.path.join(app.config["UPLOAD_DIRECTORY"], filename)).st_size
+            upload_size = storage.get_file_size(filename)
             if user.max_quota < user.used_quota + upload_size:
-                os.remove(os.path.join(app.config["UPLOAD_DIRECTORY"], filename))
+                storage.delete_file(filename)
                 db.session.delete(file_row)
                 db.session.commit()
                 return render_template_string("Couldn't upload all files! User quota exceeded"), 400
             user.used_quota += upload_size
             db.session.commit()
-            thumbnail = Image.open(os.path.join(app.config["UPLOAD_DIRECTORY"], filename))
+            thumbnail = Image.open(file)
             thumbnail.thumbnail((300, 300), Image.BILINEAR)
-            thumbnail.save(os.path.join(app.config["UPLOAD_DIRECTORY"], "thumb-" + filename))
+            thumb_binary = io.BytesIO()
+            thumbnail.save(thumb_binary, format="png")
+            thumb_binary.seek(0);
+            storage.save_file("thumb-" + filename, thumb_binary)
 
         return render_template("redirect.html", dest="/search", message="File successfully uploaded! Redirecting soon...")
 
