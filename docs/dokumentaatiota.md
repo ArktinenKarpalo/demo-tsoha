@@ -1,4 +1,4 @@
-# Dokumentaatio
+#Dokumentaatio
 
 ## Lyhyesti
 
@@ -93,8 +93,6 @@ CREATE TABLE association_file_tag (
 	FOREIGN KEY(file_id) REFERENCES File(id)
 );
 ```
-SQL-Kyselyitä
-
 Kysely hakuun tageilla filtteröintiin.
 ```SQL
 SELECT id, filename
@@ -116,6 +114,34 @@ SELECT tag.name, COUNT(name)
 	WHERE file_id IN (file_id-lista haun tuloksista)
 	GROUP BY tag.name
 	ORDER BY name
+```
+
+Esimerkkikyselyt sovelluksesta tiedon lisäämiselle, lukemiselle, päivittämiselle ja poistamiselle tietokannasta.
+
+Käyttäjän rekisteröinti
+```SQL
+INSERT INTO USER(admin, username, max_quota, used_quota, password_hash, password_salt)
+VALUES (1, 'Admin', 1000000000, 0, 'hash', 'salt')
+```
+
+Käyttäjän nimen ja quotan haku user-id:llä
+```SQL
+SELECT username, used_quota, max_quota
+FROM USER
+WHERE user.id=1
+```
+
+Käyttäjän quotan päivitys
+```SQL
+UPDATE User
+SET used_quota=100
+WHERE id=1
+```
+
+Tagin poistaminen
+```SQL
+DELETE FROM Tag
+WHERE id=1
 ```
 
 [Tietokantakaavio](https://github.com/ArktinenKarpalo/demo-tsoha/blob/master/docs/tietokantakaavio.png)
