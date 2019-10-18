@@ -26,7 +26,10 @@ init = (input_field) => {
 			if(suggestion_list != null && suggestion_list.parentNode != null && curIndex >= beginIndex && curIndex < endIndex) {
 				input_tags = input_field.value;
 				input_tags = input_tags.split(" ");
-				input_tags[input_tags.length-1] = tag_li[curIndex-beginIndex].textContent;
+				if(input_tags[input_tags.length-1][0] == '-') // Preserve exclusion
+					input_tags[input_tags.length-1] = "-"+tag_li[curIndex-beginIndex].textContent;
+				else
+					input_tags[input_tags.length-1] = tag_li[curIndex-beginIndex].textContent;
 				input_tags = input_tags.join(" ");
 				input_field.value = input_tags + " ";
 				beginIndex = -1;
@@ -86,6 +89,8 @@ suggestTags = (search) => {
 		endIndex = -1;
 		return;
 	}
+	if(search[0] == '-') // Ignore symbol expressing exclusion
+		search = search.substr(1);
 	search = search.toLowerCase();
 	beginIndex = -1;
 	for(let i = Math.log(tags.length)/Math.log(2); i>=0; i--) {
