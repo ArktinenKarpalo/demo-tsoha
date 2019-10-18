@@ -73,22 +73,23 @@ def search_by_tags(include, exclude, user_id):
         exclude = []
     sql_statement = sql_statement + " ORDER BY id DESC"
     return db.engine.execute(sql_statement, include+exclude).fetchall()
-def count_tags(filenames, file_ids):
+
+def count_tags(file_ids):
     if app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
         sql_statement2 = "SELECT tag.name, COUNT(name)\
             FROM association_file_tag\
             LEFT JOIN TAG ON tag_id=tag.id\
-            WHERE file_id IN (" + ",".join(["?" for i in range(len(filenames))]) + ")\
+            WHERE file_id IN (" + ",".join(["?" for i in range(len(file_ids))]) + ")\
             GROUP BY tag.name\
             ORDER BY name"
     else:
         sql_statement2 = "SELECT tag.name, COUNT(name)\
             FROM association_file_tag\
             LEFT JOIN TAG ON tag_id=tag.id\
-            WHERE file_id IN (" + ",".join(["%s" for i in range(len(filenames))]) + ")\
+            WHERE file_id IN (" + ",".join(["%s" for i in range(len(file_ids))]) + ")\
             GROUP BY tag.name\
             ORDER BY name"
-    if len(filenames) == 0:
+    if len(file_ids) == 0:
         return []
     else:
         return db.engine.execute(sql_statement2, file_ids).fetchall()

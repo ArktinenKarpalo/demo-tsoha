@@ -54,7 +54,7 @@ def search():
     exclude = request.args.get("exclude")
     search_results = search_by_tags(include, exclude, user_id)
     filenames = [r.filename for r in search_results]
-    tags_with_count = count_tags(filenames, [r.id for r in search_results])
+    tags_with_count = count_tags([r.id for r in search_results])
 
     offset = 0
     limit = 40
